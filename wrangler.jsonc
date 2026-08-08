@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "offeryes",
+  "compatibility_date": "2026-08-08",
+  // 纯静态站：没有 main 入口，Workers 只做静态资源分发。
+  // 数据是构建期产物（site/data.js），运行时不需要 D1/KV/Queue，
+  // 也就不占 Workers Free 那 5 条 Cron 配额——抓取跑在 GitHub Actions 上。
+  "assets": {
+    "directory": "./site",
+    "not_found_handling": "404-page"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
