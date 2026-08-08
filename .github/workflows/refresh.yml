@@ -48,3 +48,12 @@ jobs:
             git commit -m "chore(data): $(date -u -d '+8 hours' '+%Y-%m-%d %H:%M') 巡检增量"
             git push
           fi
+
+      # ⚠️ 这一步不能省。Actions 用默认 GITHUB_TOKEN 推的 commit
+      # 不会触发别的 workflow（GitHub 防循环的硬规则），所以 deploy.yml
+      # 收不到这次 push——不在这里直接部署，每天抓来的数据永远上不了线。
+      - name: 部署
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@^4 deploy
