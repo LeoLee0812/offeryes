@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OfferYes 秋招雷达 · 今天，哪些公司开了网申</title>
+<meta name="description" content="每天盯一遍牛客校招日程，只告诉你今天哪些公司开了网申、动了批次、加了方向。不列已经结束的批次，不放截止时间未公布的空壳。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23080d12'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%233ddc97'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%233ddc97' stroke-width='2' opacity='.55'/%3E%3C/svg%3E">
+<style>
+/* ============ 主题变量：亮暗两套，切换时用 GSAP 补间 ============ */
+:root {
+  --bg: #080d12;
+  --bg-soft: #0e161d;
+  --card: #111c25;
+  --card-hi: #16242f;
+  --border: #1e2f3c;
+  --border-hi: #2a4456;
+  --text: #e8f1f5;
+  --text-dim: #7c93a3;
+  --text-faint: #4a5f6e;
+  --accent: #3ddc97;
+  --accent-soft: rgba(61, 220, 151, 0.14);
+  --warn: #ffb454;
+  --danger: #ff6b6b;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scrollbar-color: var(--border-hi) transparent; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+
+/* Lucide 图标：跟随文字大小与颜色 */
+.ic { display: inline-block; vertical-align: -0.14em; flex: none; }
+.ic-dim { color: var(--text-faint); }
+.ic-accent { color: var(--accent); }
+
+/* 主题切换用的圆形扩散遮罩 */
+#ripple {
+  position: fixed; inset: 0; z-index: 9998;
+  pointer-events: none; clip-path: circle(0px at 50% 50%);
+}
+
+/* ============ 顶栏 ============ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; gap: 28px;
+  padding: 14px 28px;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 16px; letter-spacing: .3px; }
+.blip { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 0 var(--accent); animation: ping 2.4s ease-out infinite; }
+@keyframes ping { 0%{box-shadow:0 0 0 0 rgba(61,220,151,.55)} 70%{box-shadow:0 0 0 12px rgba(61,220,151,0)} 100%{box-shadow:0 0 0 0 rgba(61,220,151,0)} }
+.nav-links { display: flex; gap: 20px; font-size: 14px; color: var(--text-dim); }
+.nav-links a:hover { color: var(--text); }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.theme-btn { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; border: 1px solid var(--border); color: var(--text-dim); }
+.theme-btn:hover { border-color: var(--border-hi); color: var(--text); }
+
+/* 配色切换面板 */
+.pal-wrap { position: relative; }
+.pal-menu {
+  position: absolute; top: 44px; right: 0; width: 216px; padding: 8px;
+  background: var(--card); border: 1px solid var(--border-hi); border-radius: 13px;
+  box-shadow: 0 16px 44px rgba(0,0,0,.55);
+  opacity: 0; visibility: hidden; transform: translateY(-8px);
+  transition: opacity .2s, transform .2s, visibility .2s;
+}
+.pal-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
+.pal-title { font-size: 10.5px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text-faint); padding: 4px 8px 8px; }
+.pal-item {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 8px 9px; border-radius: 9px; font-size: 13px; color: var(--text-dim); text-align: left;
+}
+.pal-item:hover { background: var(--bg-soft); color: var(--text); }
+.pal-item.on { color: var(--text); background: var(--bg-soft); }
+.pal-swatch { width: 30px; height: 18px; border-radius: 5px; flex: none; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,.1); }
+.pal-swatch i { position: absolute; right: 0; top: 0; bottom: 0; width: 44%; }
+.pal-item .tick { margin-left: auto; opacity: 0; }
+.pal-item.on .tick { opacity: 1; color: var(--accent); }
+.nav-cta {
+  font-size: 13px; padding: 7px 15px; border-radius: 8px;
+  background: var(--accent); color: #05140d; font-weight: 600;
+}
+
+/* ============ Hero ============ */
+.hero { padding: 128px 28px 44px; max-width: 1120px; margin: 0 auto; text-align: center; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent); background: var(--accent-soft);
+  padding: 5px 13px; border-radius: 999px; margin-bottom: 22px;
+}
+.hero-title { font-size: clamp(30px, 5.4vw, 58px); font-weight: 800; line-height: 1.18; letter-spacing: -1px; }
+.hero-title .char { display: inline-block; will-change: transform; }
+.hero-sub { margin-top: 16px; color: var(--text-dim); font-size: clamp(14px, 1.7vw, 17px); }
+.hero-sub .char { display: inline-block; }
+
+/* 统计带 */
+.stats { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 38px; }
+.stat {
+  min-width: 128px; padding: 15px 20px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 13px;
+}
+.stat b { display: block; font-size: 28px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12px; color: var(--text-dim); }
+.stat.muted b { color: var(--text); }
+
+/* ============ 跑马灯 ============ */
+.marquee-wrap { margin: 40px 0 10px; }
+.marquee { overflow: hidden; padding: 6px 0; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.track { display: flex; gap: 12px; width: max-content; }
+.chip {
+  white-space: nowrap; font-size: 13px; color: var(--text-dim);
+  padding: 6px 15px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg-soft);
+}
+.chip i { font-style: normal; color: var(--accent); margin-right: 6px; }
+
+/* ============ 筛选栏 ============
+   ⚠️ 这里绝对不能用 position: sticky，也不要用 ScrollTrigger 的 pin。
+   ScrollSmoother 靠 transform 推动 #smooth-content，而 transform 会成为
+   内部 fixed/sticky 的包含块——sticky 会相对错误的容器定位，表现就是
+   筛选栏整块浮在时间线上方，把卡片挡死（上一版线上就是这个毛病）。
+   正确解法：筛选栏老老实实待在文档流里，另做一条 fixed 的紧凑条
+   （#filterbar，挂在 #smooth-wrapper 外面）承担「随时能改筛选」的职责。 */
+.filters {
+  position: static;
+  max-width: 1120px; margin: 26px auto 0; padding: 14px 20px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border); border-radius: 15px;
+}
+
+/* 滚过筛选区后出现的紧凑吸顶条 */
+#filterbar {
+  position: fixed; top: 62px; left: 0; right: 0; z-index: 95;
+  display: flex; justify-content: center;
+  pointer-events: none;
+  opacity: 0; transform: translateY(-10px);
+  transition: opacity .28s ease, transform .28s ease;
+}
+#filterbar.on { opacity: 1; transform: translateY(0); }
+.fb-inner {
+  pointer-events: auto;
+  display: flex; align-items: center; gap: 12px;
+  max-width: 1120px; width: calc(100% - 40px);
+  padding: 9px 16px;
+  background: color-mix(in srgb, var(--bg-soft) 94%, transparent);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border-hi); border-radius: 12px;
+  box-shadow: 0 8px 26px rgba(0,0,0,.28);
+  font-size: 12.5px; color: var(--text-dim);
+}
+.fb-inner b { color: var(--accent); font-variant-numeric: tabular-nums; }
+.fb-sel { display: flex; gap: 6px; flex-wrap: wrap; overflow: hidden; max-height: 24px; }
+.fb-sel .cat { border-color: var(--border-hi); }
+.fb-act { margin-left: auto; display: flex; gap: 8px; flex: none; }
+.fb-act button {
+  font-size: 12px; padding: 4px 12px; border-radius: 999px;
+  border: 1px solid var(--border-hi); color: var(--text-dim);
+}
+.fb-act button:hover { border-color: var(--accent); color: var(--accent); }
+.frow { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; padding: 4px 0; }
+.frow + .frow { border-top: 1px dashed var(--border); margin-top: 4px; padding-top: 9px; }
+.flabel { font-size: 12px; color: var(--text-faint); min-width: 60px; letter-spacing: .5px; }
+.tag {
+  font-size: 12.5px; padding: 5px 13px; border-radius: 999px;
+  border: 1px solid var(--border); color: var(--text-dim);
+  transition: all .16s;
+}
+.tag:hover { border-color: var(--border-hi); color: var(--text); }
+.tag.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.tag.other { border-style: dashed; }
+.fmeta { margin-left: auto; font-size: 12.5px; color: var(--text-faint); }
+.fmeta b { color: var(--accent); font-variant-numeric: tabular-nums; }
+
+/* ============ 时间线 ============ */
+.timeline { max-width: 1120px; margin: 0 auto; padding: 46px 20px 0; }
+.segment { position: relative; }
+.segment > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.route { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; opacity: .9; filter: drop-shadow(0 0 8px rgba(61,220,151,.4)); }
+.branch { fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-dasharray: 4 5; opacity: .5; }
+.dot { fill: var(--bg); stroke: var(--accent); stroke-width: 2.5; opacity: .3; transition: opacity .4s; }
+.dot.lit { opacity: 1; }
+.stem { stroke: var(--accent); stroke-width: 1.6; opacity: 0; transition: opacity .5s; }
+.stem.lit { opacity: .55; }
+.dot-halo { fill: var(--accent); opacity: 0; }
+
+/* 日期分隔标记——这是整个站的主轴：时间线按「哪天动的」倒序排 */
+.daymark {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 9px;
+  font-size: 11.5px; letter-spacing: 1.4px; color: var(--text-dim);
+  background: var(--bg); padding: 4px 14px; border-radius: 999px; border: 1px solid var(--border);
+  z-index: 3; white-space: nowrap;
+}
+.daymark em { font-style: normal; color: var(--text-faint); letter-spacing: 0; font-size: 11px; }
+.daymark i { font-style: normal; color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+/* 今天这一档加重，一眼能找到 */
+.daymark.today { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.daymark.today em { color: color-mix(in srgb, var(--accent) 70%, var(--text-dim)); }
+
+/* 事件类型徽标：这条卡片当天到底发生了什么 */
+.evt {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  background: var(--accent-soft); color: var(--accent);
+}
+.evt.evt-upstream { border-color: var(--border-hi); background: var(--bg-soft); color: var(--text-dim); font-weight: 500; }
+.evt.evt-window { border-color: color-mix(in srgb, var(--warn) 45%, transparent); background: color-mix(in srgb, var(--warn) 13%, transparent); color: var(--warn); }
+.evt.evt-gone { border-color: var(--border); background: transparent; color: var(--text-faint); }
+.evt.evt-future { border-style: dashed; }
+
+/* 叶子卡片 */
+/* 外层是一个与节点间距等高的容器，内部垂直居中——
+   这样无论卡片内容多少、高度如何变化，卡片中线永远对准主干上的圆点 */
+.leaf {
+  position: absolute; width: 38%; z-index: 2;
+  display: flex; align-items: center;
+  pointer-events: none;
+}
+.leaf.expanded { z-index: 20; }
+.leaf-inner {
+  width: 100%; pointer-events: auto;
+  background: var(--card); border: 1px solid var(--border); border-radius: 15px;
+  padding: 15px 17px; cursor: pointer;
+  opacity: .22; transform: translateY(16px);
+  transition: opacity .55s ease, transform .55s ease, border-color .25s, box-shadow .25s, background .25s;
+}
+.leaf.lit .leaf-inner { opacity: 1; transform: translateY(0); }
+.leaf:hover .leaf-inner { border-color: var(--border-hi); background: var(--card-hi); }
+.leaf.expanded .leaf-inner { border-color: var(--accent); box-shadow: 0 14px 44px rgba(0,0,0,.5), 0 0 0 1px var(--accent-soft); }
+
+.leaf-head { display: flex; align-items: flex-start; gap: 11px; }
+.leaf-logo {
+  width: 38px; height: 38px; border-radius: 10px; flex: 0 0 38px;
+  object-fit: cover; background: var(--bg-soft); border: 1px solid var(--border);
+}
+.leaf-logo-fb { display: grid; place-items: center; font-size: 15px; font-weight: 700; color: var(--text-dim); }
+.leaf-name { font-weight: 700; font-size: 15px; line-height: 1.35; }
+.leaf-badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 5px; }
+.badge { font-size: 11px; padding: 2px 8px; border-radius: 5px; border: 1px solid var(--border); color: var(--text-dim); }
+.badge.seq { border-color: var(--accent); color: var(--accent); }
+.leaf-toggle { margin-left: auto; flex: 0 0 26px; width: 26px; height: 26px; display: grid; place-items: center; color: var(--text-faint); transition: transform .25s, color .25s; }
+.leaf:hover .leaf-toggle { color: var(--accent); transform: translateX(3px); }
+.leaf.expanded .leaf-inner { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-soft); }
+.leaf.expanded .leaf-toggle { color: var(--accent); }
+
+.leaf-line { margin-top: 11px; font-size: 12.5px; color: var(--text-dim); }
+
+/* DDL —— 秋招最有行动价值的信息，整张卡片的视觉重心 */
+.ddl {
+  display: inline-flex; align-items: baseline; gap: 7px;
+  margin-top: 10px; padding: 8px 14px 9px; border-radius: 11px;
+  background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  color: var(--accent); font-variant-numeric: tabular-nums;
+}
+.ddl .ic { align-self: center; margin-right: 1px; }
+.ddl b { font-size: 28px; font-weight: 800; line-height: 1; letter-spacing: -.5px; }
+.ddl span { font-size: 13px; font-weight: 600; }
+.ddl.soon { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); border-color: color-mix(in srgb, var(--warn) 42%, transparent); }
+.ddl.urgent { color: var(--danger); background: color-mix(in srgb, var(--danger) 15%, transparent); border-color: color-mix(in srgb, var(--danger) 50%, transparent); animation: ddlPulse 1.9s ease-in-out infinite; }
+@keyframes ddlPulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger) 40%, transparent); } 60% { box-shadow: 0 0 0 9px transparent; } }
+.ddl.over { color: var(--text-faint); background: transparent; border-color: var(--border); }
+.ddl.over b { font-size: 15px; font-weight: 600; }
+.leaf-cats { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.cat { font-size: 11px; padding: 2px 8px; border-radius: 5px; background: var(--bg-soft); color: var(--text-dim); border: 1px solid var(--border); }
+.cat.city { color: var(--text-faint); }
+
+/* ============ 右侧抽屉：详情从右侧滑出，不在原地撑开时间线 ============ */
+#scrim {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,.5); backdrop-filter: blur(2px);
+  opacity: 0; visibility: hidden; transition: opacity .35s, visibility .35s;
+}
+#scrim.on { opacity: 1; visibility: visible; }
+
+#drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 400;
+  width: min(460px, 92vw);
+  background: var(--card); border-left: 1px solid var(--border-hi);
+  box-shadow: -24px 0 60px rgba(0,0,0,.5);
+  display: flex; flex-direction: column;
+  transform: translateX(100%);
+  visibility: hidden;
+}
+#drawer.on { visibility: visible; }
+
+.dw-head {
+  padding: 20px 22px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.dw-logo { width: 44px; height: 44px; border-radius: 11px; flex: 0 0 44px; object-fit: cover; background: var(--bg-soft); border: 1px solid var(--border); }
+.dw-title { font-size: 18px; font-weight: 700; line-height: 1.3; }
+.dw-close { margin-left: auto; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; color: var(--text-dim); flex: none; }
+.dw-close:hover { background: var(--bg-soft); color: var(--text); }
+.dw-body { flex: 1; overflow-y: auto; padding: 18px 22px 22px; overscroll-behavior: contain; }
+.dw-foot { padding: 14px 22px 18px; border-top: 1px solid var(--border); display: flex; gap: 9px; }
+
+/* 抽屉打开时主内容略微后退，形成层次 */
+#smooth-wrapper { transition: filter .4s ease; }
+body.drawer-open #smooth-wrapper { filter: brightness(.62) saturate(.85); }
+
+@media (max-width: 768px) {
+  #drawer { width: 100%; top: auto; height: 88vh; border-left: none; border-top: 1px solid var(--border-hi); border-radius: 18px 18px 0 0; transform: translateY(100%); }
+}
+.sec-title { font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text-faint); margin-bottom: 9px; }
+.sec + .sec { margin-top: 16px; }
+
+.jobcount { display: flex; align-items: baseline; gap: 8px; }
+.jobcount b { font-size: 26px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+.jobcount span { font-size: 13px; color: var(--text-dim); }
+.l1-hint { font-size: 12px; color: var(--text-faint); margin-top: 6px; line-height: 1.5; }
+
+.joblist { display: flex; flex-direction: column; gap: 6px; margin-top: 11px; }
+.job {
+  display: flex; align-items: center; gap: 10px; font-size: 13px;
+  padding: 9px 11px; background: var(--bg-soft);
+  border: 1px solid var(--border); border-radius: 9px;
+  transition: border-color .18s, background .18s;
+}
+.job[href] { cursor: pointer; }
+.job[href]:hover { border-color: var(--accent); background: var(--card-hi); }
+.job b { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.job-loc { font-size: 11.5px; color: var(--text-dim); white-space: nowrap; flex: none; }
+.job em { font-style: normal; margin-left: auto; font-size: 11px; color: var(--text-faint); white-space: nowrap; flex: none; }
+
+/* 数据源标签：这条信息是从哪来的 */
+.src-tag {
+  margin-left: 7px; font-size: 10px; letter-spacing: 0;
+  padding: 2px 7px; border-radius: 4px; text-transform: none;
+  background: var(--accent-soft); color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.badge.deep { border-color: var(--accent); color: var(--accent); }
+
+.rhythm { display: flex; flex-direction: column; gap: 6px; }
+.rline { display: flex; align-items: center; gap: 10px; font-size: 12.5px; }
+.rline i { font-style: normal; width: 34px; color: var(--text-faint); flex: 0 0 34px; }
+.rbar { flex: 1; height: 5px; border-radius: 3px; background: var(--bg-soft); position: relative; overflow: hidden; }
+.rbar span { position: absolute; inset: 0; background: var(--accent); opacity: .5; border-radius: 3px; }
+.rline u { text-decoration: none; color: var(--text-dim); font-size: 12px; min-width: 88px; text-align: right; }
+
+.leaf-actions { display: flex; gap: 9px; margin-top: 16px; }
+.btn-go {
+  flex: 1; text-align: center; font-size: 13.5px; font-weight: 700; padding: 10px;
+  border-radius: 10px; background: var(--accent); color: #05140d;
+}
+.btn-go:hover { filter: brightness(1.08); }
+.btn-go.off { background: var(--bg-soft); color: var(--text-faint); border: 1px solid var(--border); cursor: not-allowed; }
+.btn-sub { font-size: 13.5px; padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border); color: var(--text-dim); }
+.btn-sub:hover { border-color: var(--border-hi); color: var(--text); }
+
+/* 触底 */
+.tail { text-align: center; padding: 60px 20px 20px; color: var(--text-faint); font-size: 13px; }
+.loading { display: inline-flex; align-items: center; gap: 9px; }
+.ic.spin { color: var(--accent); animation: spin .9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============ 页尾祝福 ============ */
+.blessing { height: 260px; display: grid; place-items: center; overflow: hidden; position: relative; border-top: 1px solid var(--border); margin-top: 40px; }
+.blessing-text { font-size: clamp(22px, 4vw, 40px); font-weight: 800; white-space: nowrap; color: var(--accent); letter-spacing: 1px; }
+.foot { text-align: center; padding: 0 20px 70px; color: var(--text-faint); font-size: 12px; line-height: 2; }
+
+/* ============ Toast ============ */
+#toasts { position: fixed; top: 76px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; width: 300px; }
+.toast { display: flex; gap: 11px; padding: 13px 15px; background: var(--card); border: 1px solid var(--accent); border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.5); }
+.toast-icon { width: 22px; height: 22px; flex: 0 0 22px; border-radius: 50%; background: var(--accent); color: #05140d; display: grid; place-items: center; font-size: 13px; font-weight: 800; }
+.toast-title { font-size: 13.5px; font-weight: 700; }
+.toast-msg { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+/* ============ 移动端 ============ */
+@media (max-width: 768px) {
+  .nav { padding: 12px 16px; gap: 16px; }
+  .nav-links { display: none; }
+  .hero { padding: 104px 18px 30px; text-align: left; }
+  .stats { justify-content: flex-start; }
+  .stat { min-width: 104px; padding: 12px 14px; }
+  .stat b { font-size: 22px; }
+  .filters { margin: 20px 14px 0; padding: 12px 14px; border-radius: 13px; }
+  #filterbar { top: 56px; }
+  .fb-inner { width: calc(100% - 24px); padding: 8px 12px; gap: 8px; }
+  .fb-sel { display: none; }
+  .flabel { min-width: 100%; margin-bottom: 2px; }
+  .timeline { padding: 30px 14px 0; }
+  .leaf { width: calc(100% - 46px); }
+  .daymark { left: 30px; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="ripple"></div>
+
+<nav class="nav">
+  <div class="brand"><span class="blip"></span>OfferYes 秋招雷达</div>
+  <div class="nav-links">
+    <a href="#timeline">时间线</a><a href="#about">数据说明</a>
+  </div>
+  <div class="nav-right">
+    <div class="pal-wrap">
+      <button class="theme-btn" id="palBtn" aria-label="切换配色" data-ic="palette" data-ic-size="17"></button>
+      <div class="pal-menu" id="palMenu"></div>
+    </div>
+    <a href="#timeline" class="nav-cta" id="subBtn" data-ic="radar" data-ic-size="14">看今天</a>
+  </div>
+</nav>
+
+<!-- 紧凑吸顶筛选条：故意放在 #smooth-wrapper 外面，
+     不受 ScrollSmoother 的 transform 容器影响，才不会错位遮挡内容 -->
+<div id="filterbar">
+  <div class="fb-inner">
+    <span>命中 <b id="fbCount">0</b> 条</span>
+    <div class="fb-sel" id="fbSel"></div>
+    <div class="fb-act">
+      <button id="fbEdit">改筛选</button>
+      <button id="fbTop">回顶部</button>
+    </div>
+  </div>
+</div>
+
+<div id="smooth-wrapper">
+<div id="smooth-content">
+
+  <header class="hero">
+    <div class="hero-eyebrow" data-ic="radar" data-ic-size="13"><span id="heroStamp">每日 08:00 / 20:00 自动巡检</span></div>
+    <h1 class="hero-title">今天，哪些公司开了网申</h1>
+    <p class="hero-sub">只放还在招的批次。已经结束的、连截止时间都没有的空壳，一条都不进来。</p>
+    <div class="stats">
+      <div class="stat"><b data-count="0" id="stToday">0</b><span>今天有动静</span></div>
+      <div class="stat"><b data-count="0" id="stD7">0</b><span>近 7 天</span></div>
+      <div class="stat"><b data-count="0" id="stD30">0</b><span>近 30 天</span></div>
+      <div class="stat muted"><b data-count="0" id="stTrack">0</b><span>在招批次</span></div>
+    </div>
+  </header>
+
+  <div class="marquee-wrap">
+    <div class="marquee"><div class="track" data-dir="left"></div></div>
+    <div class="marquee" style="margin-top:10px"><div class="track" data-dir="right"></div></div>
+  </div>
+
+  <section class="filters">
+    <div class="frow" data-key="cat"><span class="flabel" data-ic="sliders-horizontal" data-ic-size="12">关注方向</span></div>
+    <div class="frow" data-key="type"><span class="flabel">公司类型</span></div>
+    <div class="frow" data-key="city"><span class="flabel">目标城市</span></div>
+    <div class="frow">
+      <span class="flabel"></span>
+      <button class="tag" id="closedBtn">显示已截止</button>
+      <span class="fmeta">命中 <b id="hitCount">0</b> 条</span>
+    </div>
+  </section>
+
+  <main class="timeline" id="timeline"></main>
+
+  <div class="tail" id="tail"></div>
+
+  <section class="blessing">
+    <div class="blessing-text" id="blessing">祝大家秋招顺利～～接offer！！</div>
+  </section>
+
+  <footer class="foot" id="about">
+    数据来源：牛客校招日程 · 每日两次全量巡检，与上一份快照逐条比对得出增量<br>
+    <span id="footStamp"></span><br>
+    只收录仍在进行中的批次；已结束的历史批次与零字段记录一律不入库<br>
+    信息以企业官网为准 · 站点不收集任何个人信息
+  </footer>
+
+</div>
+</div>
+
+<div id="toasts"></div>
+
+<div id="scrim"></div>
+<aside id="drawer" aria-hidden="true">
+  <div class="dw-head" id="dwHead"></div>
+  <div class="dw-body" id="dwBody"></div>
+  <div class="dw-foot" id="dwFoot"></div>
+</aside>
+
+<script src="lib/gsap.min.js"></script>
+<script src="lib/ScrollTrigger.min.js"></script>
+<script src="lib/ScrollSmoother.min.js"></script>
+<script src="lib/DrawSVGPlugin.min.js"></script>
+<script src="lib/SplitText.min.js"></script>
+<script src="lib/MorphSVGPlugin.min.js"></script>
+<script src="lib/EasePack.min.js"></script>
+<script src="data.js?v=1532b53daa"></script>
+<script src="icons.js"></script>
+<!-- Cloudflare Web Analytics：leolee0812.site 这个 zone 下所有站共用同一个 site_token，后台按 hostname 分开看 -->
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon='{"token": "f5b1fbf53cad4881b713ff74cffaf80f"}'></script>
+<script>
+gsap.registerPlugin(ScrollTrigger, ScrollSmoother, DrawSVGPlugin, SplitText, MorphSVGPlugin);
+
+/* ================= 常量与数据 ================= */
+const DAY = 86400000;
+const NOW = Date.now();
+const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const CATS = [
+  { k: "tech", n: "技术" }, { k: "product", n: "产品" }, { k: "operation", n: "运营" },
+  { k: "design", n: "设计" }, { k: "market", n: "市场" }, { k: "function", n: "职能" },
+  { k: "other", n: "其他" },
+];
+const TYPES = [
+  { k: "internet", n: "互联网" }, { k: "soe", n: "国企央企" }, { k: "foreign", n: "外企" },
+  { k: "other", n: "其他" },
+];
+// 具名城市 18 个 + 「其他城市」
+const CITIES = ["北京","上海","深圳","杭州","广州","成都","南京","武汉","西安","苏州","天津","长沙","合肥","重庆","青岛","大连","厦门","郑州"];
+
+/* 事件类型——这张表就是本站的信息主张：
+   时间线上每张卡片回答的不是「这家公司存在」，而是「这天它发生了什么」 */
+const EVT = {
+  new:      { n: "新收录",   ic: "sparkles",             cls: "" },
+  batch:    { n: "开新批次", ic: "layers",               cls: "" },
+  open:     { n: "网申开放", ic: "flame",                cls: "" },
+  window:   { n: "时间调整", ic: "calendar-clock",       cls: "evt-window" },
+  careers:  { n: "新增方向", ic: "briefcase-business",   cls: "" },
+  upstream: { n: "信息更新", ic: "clock",                cls: "evt-upstream" },
+  gone:     { n: "已下架",   ic: "clock",                cls: "evt-gone" },
+};
+
+const D = window.__OFFERYES__ || { meta: {}, stats: {}, days: [], detail: {} };
+const DETAIL = D.detail || {};
+// 时间线的一条记录 = 一个「某天发生在某个批次上的事件」，天然按天倒序
+const ALL = (D.days || []).flatMap(d => d.events.map(e => ({ ...e, day: d.day })));
+
+/* ================= 工具 ================= */
+function daysLeft(end) { return Math.ceil((end - NOW) / DAY); }
+/** 同一年只写月日；跨年的必须带上年份，否则「8月14日 – 7月15日」看着像结束早于开始 */
+function fmtDate(ts) {
+  const d = new Date(ts);
+  const y = d.getFullYear();
+  const md = `${d.getMonth() + 1}月${d.getDate()}日`;
+  return y === new Date(NOW).getFullYear() ? md : `${y}年${md}`;
+}
+
+/** YYYY-MM-DD → 相对今天的天数差（0=今天，1=昨天…）。以数据里的 today 为基准，
+    避免用户本地时区不是东八区时把「今天」算错。 */
+const TODAY = D.meta.today || new Date(NOW + 8 * 3600e3).toISOString().slice(0, 10);
+function dayDelta(day) {
+  const a = Date.parse(day + "T00:00:00Z"), b = Date.parse(TODAY + "T00:00:00Z");
+  return Math.round((b - a) / DAY);
+}
+function dayLabel(day) {
+  const n = dayDelta(day);
+  if (n <= 0) return "今天";
+  if (n === 1) return "昨天";
+  if (n === 2) return "前天";
+  const [, m, d] = day.split("-");
+  return `${+m}月${+d}日`;
+}
+/** DDL 是整张卡片的视觉重心：天数单独放大，紧迫度用颜色分三档 */
+function countdownOf(end) {
+  if (!end) return { num: "截止时间未公布", tail: "", cls: "over" };
+  const d = daysLeft(end);
+  if (d < 0) return { num: "已截止", tail: "", cls: "over" };
+  if (d === 0) return { num: "今天", tail: "截止", cls: "urgent" };
+  return { num: d, tail: "天后截止", cls: d <= 3 ? "urgent" : d <= 10 ? "soon" : "" };
+}
+const catName = k => (CATS.find(c => c.k === k) || { n: "其他" }).n;
+const typeName = k => (TYPES.find(t => t.k === k) || { n: "其他" }).n;
+
+/* ================= 筛选 ================= */
+const sel = { cat: new Set(), type: new Set(), city: new Set() };
+let showClosed = false;
+
+function buildFilters() {
+  const groups = { cat: CATS.map(c => [c.k, c.n]), type: TYPES.map(t => [t.k, t.n]),
+                   city: [...CITIES.map(c => [c, c]), ["__other__", "其他城市"]] };
+  Object.entries(groups).forEach(([key, items]) => {
+    const row = document.querySelector(`.frow[data-key="${key}"]`);
+    items.forEach(([val, label]) => {
+      const b = document.createElement("button");
+      b.className = "tag" + (val === "other" || val === "__other__" ? " other" : "");
+      b.textContent = label;
+      b.onclick = () => {
+        sel[key].has(val) ? sel[key].delete(val) : sel[key].add(val);
+        b.classList.toggle("on");
+        render();
+      };
+      row.appendChild(b);
+    });
+  });
+  document.getElementById("closedBtn").onclick = e => {
+    showClosed = !showClosed;
+    e.target.classList.toggle("on");
+    render();
+  };
+}
+
+function match(c) {
+  if (sel.cat.size && !(c.cats || []).some(k => sel.cat.has(k))) return false;
+  if (sel.type.size && !sel.type.has(c.ctype)) return false;
+  if (sel.city.size) {
+    const cities = c.cities || [];
+    const isOther = cities.filter(x => CITIES.includes(x)).length === 0; // 城市全都不在具名列表里
+    const hit = cities.some(x => sel.city.has(x)) || (sel.city.has("__other__") && isOther);
+    if (!hit) return false;
+  }
+  if (!showClosed && c.end && c.end < NOW) return false;
+  return true;
+}
+
+/* ================= 时间线渲染（分段绘制） ================= */
+const SEGMENT_SIZE = 6;     // 每段几个节点
+const PAGE_SIZE = 12;       // 每次无限滚动加载几条
+let shown = PAGE_SIZE;
+let filtered = [];
+let expandedKey = null;
+const triggers = [];
+
+/**
+ * 量出这批卡片里最高的一张。
+ *
+ * 做法是把卡片先按正常流塞进一个隐藏容器渲染一遍——宽度、字体、换行
+ * 都和最终一致，量出来的高度才准。写死一个经验值在内容变长时必然翻车。
+ */
+function measureLeafHeight(host, list) {
+  if (!list.length) return 0;
+  const probe = document.createElement("div");
+  probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none;left:-9999px;top:0";
+  probe.style.width = host.clientWidth + "px";
+  // 只量前 40 张：再多也不会更高，白白拖慢重绘
+  probe.innerHTML = list.slice(0, 40).map(c =>
+    `<article class="leaf" style="position:static;width:${leafWidthCss()}">${leafHTML(c)}</article>`
+  ).join("");
+  host.appendChild(probe);
+  const h = Math.max(0, ...[...probe.querySelectorAll(".leaf-inner")].map(el => el.offsetHeight));
+  probe.remove();
+  return h;
+}
+
+/** 卡片宽度：和 CSS 里 .leaf 的规则保持一致 */
+function leafWidthCss() {
+  return window.innerWidth <= 768 ? "calc(100% - 46px)" : "38%";
+}
+
+// 响应式几何：用真实像素坐标，避免 SVG 非等比拉伸把圆点压成椭圆
+function geom(W, leafH = 0) {
+  const mobile = window.innerWidth <= 768;
+  // GAP 是相邻节点的垂直间距，也是卡片的可用高度。
+  // 取「最高那张卡片 + 呼吸间距」与经验下限中的较大值，卡片就永远不会互相压住。
+  const MIN = mobile ? 236 : 244;
+  const GAP = Math.max(MIN, Math.ceil(leafH) + (mobile ? 40 : 48));
+  return mobile
+    ? { GAP, MID: 24, AMP: 12, W, mobile: true }
+    : { GAP, MID: W / 2, AMP: W * 0.075, W, mobile: false };
+}
+
+/** 生成一段曲线：每个节点处曲线弯到最外侧，节点圆点就落在弯点上 */
+function buildSegPath(segIdx, n, g) {
+  const pts = [];
+  let d = `M ${g.MID} 0`;
+  for (let i = 0; i < n; i++) {
+    const y0 = i * g.GAP, ym = y0 + g.GAP / 2, y1 = y0 + g.GAP;
+    // 桌面：左右交替；移动端：始终向右轻微鼓出
+    const side = g.mobile ? 1 : ((segIdx * SEGMENT_SIZE + i) % 2 === 0 ? 1 : -1);
+    const cx = g.MID + g.AMP * side;
+    d += ` C ${g.MID} ${y0 + g.GAP * 0.24}, ${cx} ${ym - g.GAP * 0.26}, ${cx} ${ym}`;
+    d += ` C ${cx} ${ym + g.GAP * 0.26}, ${g.MID} ${y1 - g.GAP * 0.24}, ${g.MID} ${y1}`;
+    pts.push({ cx, cy: ym, side });
+  }
+  return { d, pts, height: n * g.GAP };
+}
+
+/** 徽标文案：同是 open，已经开的和还没开的说法不一样 */
+function evtName(c) {
+  const ev = EVT[c.type] || EVT.upstream;
+  if (c.type === "open" && c.future) return "即将开放";
+  return ev.n;
+}
+
+/** 一句话说明这条事件到底改了什么——比光挂一个标签有信息量 */
+function evtDetail(c) {
+  if (c.type === "open") {
+    return c.future
+      ? `网申将于 ${c.start ? fmtDate(c.start) : "近期"} 开放`
+      : `这天网申通道打开${c.end ? `，开到 ${fmtDate(c.end)}` : ""}`;
+  }
+  if (c.type === "upstream") return "上游当天改动过这条批次的信息";
+  if (c.type === "window" && c.from) {
+    const oldTxt = c.from.end ? `${fmtDate(c.from.start)} – ${fmtDate(c.from.end)}` : "未公布";
+    return `网申时间由 ${oldTxt} 改为 ${c.start && c.end ? `${fmtDate(c.start)} – ${fmtDate(c.end)}` : "未公布"}`;
+  }
+  if (c.type === "careers" && c.added?.length) return `新增方向：${c.added.join("、")}`;
+  if (c.type === "batch") return "同一家公司又开了一批新的招聘";
+  if (c.type === "new") return "第一次出现在校招日程里";
+  if (c.type === "open") return "网申通道今天正式打开";
+  if (c.type === "gone") return "上游已把这条批次撤下";
+  return "";
+}
+
+function leafHTML(c) {
+  const seqInfo = c.seq || { seq: 1, total: 1 };
+  const cd = countdownOf(c.end);
+  const cats = [...new Set(c.cats || [])].map(k => `<span class="cat">${catName(k)}</span>`).join("");
+  const cities = (c.cities || []).slice(0, 3).map(x => `<span class="cat city">${icon("map-pin", 11)} ${x}</span>`).join("");
+  const seqBadge = seqInfo.total > 1 ? `<span class="badge seq">${icon("layers", 11)} 第 ${seqInfo.seq} 批</span>` : "";
+  const win = c.start && c.end ? `网申 ${fmtDate(c.start)} – ${fmtDate(c.end)}` : "网申时间未公布";
+  const logo = c.logo
+    ? `<img class="leaf-logo" src="${c.logo}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'leaf-logo leaf-logo-fb',textContent:'${c.name.slice(0,1)}'}))">`
+    : `<div class="leaf-logo leaf-logo-fb">${c.name.slice(0, 1)}</div>`;
+  const ev = EVT[c.type] || EVT.upstream;
+  const detail = evtDetail(c);
+
+  return `<div class="leaf-inner">
+    <div class="leaf-head">
+      ${logo}
+      <div style="min-width:0">
+        <div class="leaf-name">${c.name}</div>
+        <div class="leaf-badges">
+          <span class="evt ${ev.cls}${c.future ? " evt-future" : ""}">${icon(ev.ic, 11)} ${evtName(c)}</span>
+          <span class="badge">${icon("building-2", 11)} ${typeName(c.ctype)}</span>
+          ${seqBadge}
+          ${c.batch ? `<span class="badge">${c.batch} 批次</span>` : ""}
+        </div>
+      </div>
+      <div class="leaf-toggle">${icon("chevron-right", 17)}</div>
+    </div>
+    ${detail ? `<div class="leaf-line" style="color:var(--text-dim)">${detail}</div>` : ""}
+    <div class="leaf-line">${icon("calendar-clock", 13, "ic-dim")} ${win}</div>
+    <div class="ddl ${cd.cls}">${icon("clock", 15)}<b>${cd.num}</b>${cd.tail ? `<span>${cd.tail}</span>` : ""}</div>
+    <div class="leaf-cats">${cats}${cities}</div>
+  </div>`;
+}
+
+/** 抽屉正文：开放方向 + 招聘节奏 + 官方节点。
+    牛客校招日程给不到岗位明细（企业主页「职位(0)」，上游自己就没有这份数据），
+    所以这里诚实地展示到「方向」这一层，不编造岗位数。 */
+function drawerBody(c) {
+  const careers = c.careers || [];
+  let bodySec = `<div class="sec">
+    <div class="sec-title">${icon("sparkles", 12)} 开放方向 · ${careers.length} 个</div>
+    <div class="leaf-cats">${careers.map(x => `<span class="cat">${x}</span>`).join("") || '<span class="cat">暂无方向信息</span>'}</div>
+  </div>`;
+
+  const rhythm = [
+    ["内推", c.neituiTime], ["网申", c.windowText || (c.start && c.end ? `${fmtDate(c.start)} – ${fmtDate(c.end)}` : "")],
+    ["笔试", c.testTime], ["面试", c.interviewTime], ["Offer", c.offerTime],
+  ].filter(r => r[1]);
+  if (rhythm.length) {
+    bodySec += `<div class="sec"><div class="sec-title">${icon("calendar-clock", 12)} 招聘节奏</div><div class="rhythm">${
+      rhythm.map((r, i) => `<div class="rline"><i>${r[0]}</i><div class="rbar"><span style="left:${i * 11}%;right:${34 - i * 8}%"></span></div><u>${r[1]}</u></div>`).join("")
+    }</div></div>`;
+  }
+
+  const links = (c.schedules || []).filter(s => s.u && s.u.startsWith("http"));
+  if (links.length) {
+    bodySec += `<div class="sec">
+      <div class="sec-title">${icon("external-link", 12)} 官方节点</div>
+      <div class="joblist">${links.slice(0, 8).map(s => `
+        <a class="job" href="${s.u}" target="_blank" rel="noopener">
+          <b>${s.n || s.c || "投递链接"}</b>
+          <span class="job-loc">${s.c || ""}</span>
+          <em>${s.t || ""}</em>
+        </a>`).join("")}</div>
+    </div>`;
+  }
+
+  return bodySec;
+}
+
+/** 筛选后每一天各剩多少条——日期标记上要显示这个数 */
+let dayCounts = {};
+
+function render() {
+  filtered = ALL.filter(match);
+  dayCounts = {};
+  filtered.forEach(e => (dayCounts[e.day] = (dayCounts[e.day] || 0) + 1));
+  document.getElementById("hitCount").textContent = filtered.length;
+  document.getElementById("fbCount").textContent = filtered.length;
+  syncFilterBar();
+  shown = Math.min(Math.max(shown, PAGE_SIZE), filtered.length || PAGE_SIZE);
+  drawTimeline();
+}
+
+function drawTimeline() {
+  triggers.forEach(t => t.kill());
+  triggers.length = 0;
+  const host = document.getElementById("timeline");
+  host.innerHTML = "";
+
+  const list = filtered.slice(0, shown);
+  // 卡片是绝对定位、高度锁死为 GAP 的，内容一旦比 GAP 高就会压到下一张上。
+  // 卡片行数取决于方向标签和城市标签的数量，是变的，所以先量一遍真实高度再定 GAP。
+  const g = geom(host.clientWidth || 1080, measureLeafHeight(host, list));
+  const segCount = Math.ceil(list.length / SEGMENT_SIZE);
+  let lastDay = "";
+
+  if (!list.length) {
+    host.innerHTML = `<div class="tail" style="padding:40px 20px">${icon("radar", 15, "ic-dim")} 当前筛选条件下没有匹配的动态，试试放宽条件</div>`;
+    document.getElementById("tail").innerHTML = "";
+    return;
+  }
+
+  for (let s = 0; s < segCount; s++) {
+    const items = list.slice(s * SEGMENT_SIZE, (s + 1) * SEGMENT_SIZE);
+    const { d, pts, height } = buildSegPath(s, items.length, g);
+
+    const seg = document.createElement("section");
+    seg.className = "segment";
+    seg.style.height = height + "px";
+
+    // 同公司相邻批次的支线
+    let branches = "";
+    items.forEach((c, i) => {
+      if (i === 0) return;
+      if (items[i - 1].companyId === c.companyId) {
+        const a = pts[i - 1], b = pts[i];
+        const bow = (a.side > 0 ? 1 : -1) * g.GAP * 0.34;   // 支线朝叶子那侧鼓出
+        branches += `<path class="branch" d="M ${a.cx} ${a.cy} Q ${(a.cx + b.cx) / 2 + bow} ${(a.cy + b.cy) / 2} ${b.cx} ${b.cy}"/>`;
+      }
+    });
+
+    // 坐标即像素，1:1 映射，圆点不会被拉扁
+    seg.innerHTML = `<svg viewBox="0 0 ${g.W} ${height}" width="${g.W}" height="${height}">
+      <path class="route" id="route-${s}" d="${d}"/>
+      ${branches}
+      ${pts.map((p, i) => {
+        // 叶柄：从主干节点伸向卡片的一小段，让「叶子长在藤上」而不是浮着
+        const sx = g.mobile ? p.cx + 34 : p.cx + (p.side > 0 ? 22 : -22);
+        return `<line class="stem" data-i="${i}" x1="${p.cx}" y1="${p.cy}" x2="${sx}" y2="${p.cy}"/>`
+             + `<circle class="dot" data-i="${i}" cx="${p.cx}" cy="${p.cy}" r="6.5"/>`;
+      }).join("")}
+    </svg>`;
+
+    items.forEach((c, i) => {
+      const p = pts[i];
+
+      // 日期分隔标记——时间线的主轴刻度
+      if (c.day !== lastDay) {
+        lastDay = c.day;
+        const n = dayCounts[c.day] || 0;
+        const mark = document.createElement("div");
+        mark.className = "daymark" + (dayDelta(c.day) <= 0 ? " today" : "");
+        mark.innerHTML = `${dayLabel(c.day)} <i>${n}</i> 条动态 <em>${c.day}</em>`;
+        mark.style.top = (p.cy - g.GAP / 2 + 6) + "px";
+        seg.appendChild(mark);
+      }
+
+      const leaf = document.createElement("article");
+      leaf.className = "leaf";
+      leaf.dataset.key = c.key;
+      leaf.style.top = (p.cy - g.GAP / 2) + "px";
+      leaf.style.height = g.GAP + "px";
+      // 卡片紧挨节点圆点、朝外侧展开——曲线弯到哪边，叶子就长在哪边
+      if (g.mobile) { leaf.style.left = (g.MID + 34) + "px"; }
+      else if (p.side > 0) { leaf.style.left = (p.cx + 22) + "px"; }
+      else { leaf.style.right = (g.W - p.cx + 22) + "px"; }
+
+      leaf.innerHTML = leafHTML(c);
+      leaf.querySelector(".leaf-inner").onclick = e => {
+        if (e.target.closest("a")) return;
+        document.querySelectorAll(".leaf.expanded").forEach(el => el.classList.remove("expanded"));
+        leaf.classList.add("expanded");
+        expandedKey = c.key;
+        openDrawer(c);
+      };
+      seg.appendChild(leaf);
+    });
+
+    host.appendChild(seg);
+
+    // 每段独立的曲线绘制 + 节点点亮
+    const st = ScrollTrigger.create({
+      trigger: seg, start: "top 92%", end: "bottom 78%", scrub: REDUCED ? false : 0.5,
+      animation: REDUCED ? null : gsap.from(`#route-${s}`, { drawSVG: "0%", ease: "none" }),
+    });
+    triggers.push(st);
+
+    seg.querySelectorAll(".leaf").forEach((el, i) => {
+      const t = ScrollTrigger.create({
+        trigger: el, start: "top 92%",
+        onEnter: () => {
+          el.classList.add("lit");
+          seg.querySelector(`.dot[data-i="${i}"]`)?.classList.add("lit");
+          seg.querySelector(`.stem[data-i="${i}"]`)?.classList.add("lit");
+        },
+      });
+      triggers.push(t);
+    });
+  }
+
+  // 触底提示
+  const tail = document.getElementById("tail");
+  if (shown < filtered.length) {
+    tail.innerHTML = `<span class="loading">${icon("loader-circle", 15, "spin")}继续下滑，加载更早的批次…</span>`;
+  } else {
+    tail.innerHTML = `${icon("check", 14, "ic-accent")} 已经到底了 · 共 ${filtered.length} 条`;
+  }
+
+  ScrollTrigger.refresh();
+}
+
+/* ================= 右侧抽屉 ================= */
+const drawer = () => document.getElementById("drawer");
+const scrim = () => document.getElementById("scrim");
+let drawerTl = null;
+
+function openDrawer(evt) {
+  const dw = drawer(), sc = scrim();
+  const mobile = window.innerWidth <= 768;
+  // 事件卡片只带展示字段，完整信息在 detail 索引里；下架的条目退化用事件快照
+  const c = DETAIL[evt.key] || evt;
+  const seqInfo = c.seq || evt.seq || { seq: 1, total: 1 };
+
+  const logo = c.logo
+    ? `<img class="dw-logo" src="${c.logo}" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">`
+    : `<div class="dw-logo leaf-logo-fb">${c.name.slice(0, 1)}</div>`;
+  const seqBadge = seqInfo.total > 1 ? `<span class="badge seq">${icon("layers", 11)} 第 ${seqInfo.seq} 批</span>` : "";
+  const cd = countdownOf(c.end);
+  const ev = EVT[evt.type] || EVT.upstream;
+  const detailLine = evtDetail(evt);
+
+  document.getElementById("dwHead").innerHTML = `
+    ${logo}
+    <div style="min-width:0">
+      <div class="dw-title">${c.name}</div>
+      <div class="leaf-badges">
+        <span class="badge">${icon("building-2", 11)} ${typeName(c.type || evt.ctype)}</span>
+        ${seqBadge}
+        ${c.batch ? `<span class="badge">${c.batch} 批次</span>` : ""}
+      </div>
+    </div>
+    <button class="dw-close" id="dwClose" aria-label="关闭">${icon("plus", 18)}</button>`;
+
+  document.getElementById("dwBody").innerHTML = `
+    <div class="sec" style="margin-top:0">
+      <div class="sec-title">${dayLabel(evt.day)} · ${evt.day}</div>
+      <span class="evt ${ev.cls}${evt.future ? " evt-future" : ""}">${icon(ev.ic, 11)} ${evtName(evt)}</span>
+      ${detailLine ? `<div class="l1-hint">${detailLine}</div>` : ""}
+    </div>
+    <div class="ddl ${cd.cls}">${icon("clock", 15)}<b>${cd.num}</b>${cd.tail ? `<span>${cd.tail}</span>` : ""}</div>
+    <div class="leaf-line" style="margin-bottom:2px">${icon("calendar-clock", 13, "ic-dim")} ${
+      c.start && c.end ? `网申 ${fmtDate(c.start)} – ${fmtDate(c.end)}` : "网申时间未公布"}</div>
+    <div class="leaf-cats">${(c.cities || []).map(x => `<span class="cat city">${icon("map-pin", 11)} ${x}</span>`).join("")}</div>
+    ${drawerBody(c)}`;
+
+  const go = c.applyUrl || c.officalUrl;
+  document.getElementById("dwFoot").innerHTML = go
+    ? `<a class="btn-go" href="${go}" target="_blank" rel="noopener">去官方页面投递 ${icon("external-link", 14)}</a>
+       <a class="btn-sub" href="https://www.nowcoder.com/school/schedule" target="_blank" rel="noopener">牛客原页 ${icon("arrow-right", 13)}</a>`
+    : `<a class="btn-sub" style="flex:1;text-align:center" href="https://www.nowcoder.com/school/schedule" target="_blank" rel="noopener">上游未给出链接 · 去牛客原页 ${icon("arrow-right", 13)}</a>`;
+
+  document.getElementById("dwClose").onclick = closeDrawer;
+
+  dw.classList.add("on");
+  sc.classList.add("on");
+  document.body.classList.add("drawer-open");
+  dw.setAttribute("aria-hidden", "false");
+
+  drawerTl?.kill();
+  // 关闭图标从加号旋转 45° 变成叉，省一个图标
+  gsap.set("#dwClose .ic", { rotate: 45, transformOrigin: "50% 50%" });
+  drawerTl = gsap.timeline()
+    .fromTo(dw, mobile ? { y: "100%" } : { x: "100%" },
+                mobile ? { y: "0%", duration: .42, ease: "power3.out" }
+                       : { x: "0%", duration: .42, ease: "power3.out" })
+    .from("#dwBody .sec, #dwBody .ddl, #dwBody .leaf-line", {
+      x: 22, opacity: 0, duration: .35, ease: "power2.out", stagger: .05 }, "-=.22");
+}
+
+function closeDrawer() {
+  const dw = drawer(), sc = scrim();
+  const mobile = window.innerWidth <= 768;
+  sc.classList.remove("on");
+  document.body.classList.remove("drawer-open");
+  dw.setAttribute("aria-hidden", "true");
+  drawerTl?.kill();
+  gsap.to(dw, {
+    ...(mobile ? { y: "100%" } : { x: "100%" }),
+    duration: .32, ease: "power3.in",
+    onComplete: () => dw.classList.remove("on"),
+  });
+  document.querySelectorAll(".leaf.expanded").forEach(el => el.classList.remove("expanded"));
+  expandedKey = null;
+}
+
+/* ================= 无限下滑 ================= */
+let loading = false;
+function initInfinite() {
+  window.addEventListener("scroll", () => {
+    if (loading || shown >= filtered.length) return;
+    const scroller = ScrollSmoother.get()?.scrollTop() ?? window.scrollY;
+    const docH = document.documentElement.scrollHeight;
+    if (scroller + window.innerHeight > docH - 700) {
+      loading = true;
+      shown = Math.min(shown + PAGE_SIZE, filtered.length);
+      drawTimeline();
+      gsap.delayedCall(0.15, () => (loading = false));
+    }
+  }, { passive: true });
+}
+
+/* ================= Hero 动效 ================= */
+function initHero() {
+  if (REDUCED) return;
+  document.fonts.ready.then(() => {
+    const t = new SplitText(".hero-title", { type: "chars", charsClass: "char" });
+    gsap.timeline()
+      .from(t.chars, { y: 70, opacity: 0, rotateX: -90, duration: .8, ease: "back.out(1.7)", stagger: .035 })
+      .from(".stat", { y: 18, opacity: 0, duration: .5, ease: "power2.out", stagger: .07 }, "-=.35");
+  });
+}
+
+/** 把真实统计写进 Hero 的数字带与页脚时间戳 */
+function initStats() {
+  const s = D.stats || {};
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.dataset.count = v || 0; };
+  set("stToday", s.today); set("stD7", s.d7); set("stD30", s.d30); set("stTrack", s.tracking);
+
+  const t = D.meta.crawledAt ? new Date(D.meta.crawledAt + 8 * 3600e3) : null;
+  const stamp = t
+    ? `${t.getUTCMonth() + 1}月${t.getUTCDate()}日 ${String(t.getUTCHours()).padStart(2, "0")}:${String(t.getUTCMinutes()).padStart(2, "0")}`
+    : "";
+  const hero = document.getElementById("heroStamp");
+  if (hero && stamp) hero.textContent = `最近一次巡检 ${stamp}（北京时间）`;
+  const foot = document.getElementById("footStamp");
+  if (foot && stamp) {
+    foot.textContent = `最近巡检 ${stamp} · 当前在招批次 ${D.meta.tracking} 个（网申进行中 ${D.meta.open} · 即将开放 ${D.meta.upcoming}）`;
+  }
+}
+
+/** 紧凑吸顶条：滚过筛选区才出现，避免整块筛选栏浮在时间线上挡住卡片 */
+function syncFilterBar() {
+  const box = document.getElementById("fbSel");
+  if (!box) return;
+  const chips = [];
+  sel.cat.forEach(k => chips.push(catName(k)));
+  sel.type.forEach(k => chips.push(typeName(k)));
+  sel.city.forEach(k => chips.push(k === "__other__" ? "其他城市" : k));
+  if (showClosed) chips.push("含已截止");
+  box.innerHTML = chips.length
+    ? chips.map(x => `<span class="cat">${x}</span>`).join("")
+    : `<span class="cat">全部动态</span>`;
+}
+
+function initFilterBar() {
+  const bar = document.getElementById("filterbar");
+  const filters = document.querySelector(".filters");
+  const scrollTo = (target, offset) => {
+    const sm = ScrollSmoother.get();
+    if (sm) sm.scrollTo(target, true, `top ${offset}px`);
+    else target.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  document.getElementById("fbEdit").onclick = () => scrollTo(filters, 70);
+  document.getElementById("fbTop").onclick = () => {
+    const sm = ScrollSmoother.get();
+    sm ? sm.scrollTo(0, true) : window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  // 用 IntersectionObserver 而不是 ScrollTrigger：ScrollSmoother 接管滚动后，
+  // 由浏览器自己算的交叉状态永远准，不受 transform 容器影响
+  new IntersectionObserver(
+    ([e]) => bar.classList.toggle("on", !e.isIntersecting && e.boundingClientRect.top < 0),
+    { rootMargin: "-70px 0px 0px 0px", threshold: 0 },
+  ).observe(filters);
+}
+
+function initCounters() {
+  document.querySelectorAll("[data-count]").forEach(el => {
+    const target = +el.dataset.count;
+    if (REDUCED) { el.textContent = target.toLocaleString(); return; }
+    const o = { v: 0 };
+    gsap.to(o, {
+      v: target, duration: 1.5, ease: "power2.out", delay: .35,
+      onUpdate: () => (el.textContent = Math.round(o.v).toLocaleString()),
+    });
+  });
+}
+
+/* ================= 跑马灯 ================= */
+function initMarquee() {
+  const names = [...new Set(ALL.map(c => c.name))].slice(0, 22);
+  if (!names.length) return;
+  document.querySelectorAll(".track").forEach(track => {
+    const build = () => names.forEach(n => {
+      const c = document.createElement("div");
+      c.className = "chip";
+      c.innerHTML = `<i>●</i>${n}`;
+      track.appendChild(c);
+    });
+    build(); build();
+    const gap = 12;
+    const half = (track.scrollWidth - gap) / 2 + gap;
+    const left = track.dataset.dir === "left";
+    const tw = gsap.fromTo(track, { x: left ? 0 : -half }, {
+      x: left ? -half : 0, duration: half / 62, ease: "none", repeat: -1,
+    });
+    const m = track.closest(".marquee");
+    m.addEventListener("mouseenter", () => gsap.to(tw, { timeScale: .22, duration: .4, overwrite: true }));
+    m.addEventListener("mouseleave", () => gsap.to(tw, { timeScale: 1, duration: .4, overwrite: true }));
+  });
+}
+
+/* ================= 页尾祝福语（SlowMo 无限循环） ================= */
+function initBlessing() {
+  const el = document.getElementById("blessing");
+  const stage = el.parentElement;
+  if (REDUCED) return;
+
+  let tw;
+  const build = () => {
+    tw?.kill();
+    // 起点与终点都放在视口外，repeat 回到起点时看不出跳变，循环才是无缝的
+    const from = (stage.clientWidth + el.offsetWidth) / 2 + 40;
+    const to = -from;
+    tw = gsap.fromTo(el, { x: from }, {
+      x: to,
+      duration: 11,
+      // slow(linearRatio, power)：第一个参数是「慢速段占总时长的比例」。
+      // 0.7 会让中间停太久，0.38 刚好——两端快速掠过，中间有停顿感但不拖沓。
+      ease: "slow(0.38, 0.8, false)",
+      repeat: -1,
+    });
+  };
+  build();
+
+  // 只在这一屏可见时才跑，滚走就暂停，省得白白占着帧。
+  // 这里用 IntersectionObserver 而不是 ScrollTrigger：ScrollSmoother 接管滚动后，
+  // 程序化跳转不会可靠地触发 ScrollTrigger 的回调，而 IO 由浏览器自己算，永远准。
+  new IntersectionObserver(
+    ([e]) => (e.isIntersecting ? tw.play() : tw.pause()),
+    { threshold: 0 }
+  ).observe(stage);
+
+  let bt;
+  window.addEventListener("resize", () => {
+    clearTimeout(bt);
+    bt = setTimeout(() => { const p = tw.progress(); build(); tw.progress(p).play(); }, 200);
+  });
+}
+
+/* ================= 配色风格（六套，切换时圆形扩散） ================= */
+const PALETTES = [
+  { key: "radar", name: "雷达绿", note: "当前 · GSAP 同源",
+    v: { "--accent":"#3ddc97","--accent-soft":"rgba(61,220,151,.14)","--warn":"#ffb454","--danger":"#ff6b6b",
+         "--bg":"#080d12","--bg-soft":"#0e161d","--card":"#111c25","--card-hi":"#16242f",
+         "--border":"#1e2f3c","--border-hi":"#2a4456","--text":"#e8f1f5","--text-dim":"#7c93a3","--text-faint":"#4a5f6e" } },
+
+  { key: "cobalt", name: "深空蓝", note: "冷静 · 工具感",
+    v: { "--accent":"#4c8dff","--accent-soft":"rgba(76,141,255,.15)","--warn":"#ffb454","--danger":"#ff6b6b",
+         "--bg":"#060a13","--bg-soft":"#0c1220","--card":"#10182a","--card-hi":"#152036",
+         "--border":"#1c2942","--border-hi":"#2a3d5e","--text":"#e6ecf7","--text-dim":"#7d8ba8","--text-faint":"#4a5670" } },
+
+  { key: "amber", name: "琥珀橙", note: "紧迫 · 最扣 DDL",
+    v: { "--accent":"#ffa62b","--accent-soft":"rgba(255,166,43,.15)","--warn":"#ffd45e","--danger":"#ff5f52",
+         "--bg":"#0d0a06","--bg-soft":"#171208","--card":"#1c160d","--card-hi":"#241c11",
+         "--border":"#33291a","--border-hi":"#4a3b24","--text":"#f6eee2","--text-dim":"#a3907a","--text-faint":"#6b5b48" } },
+
+  { key: "magenta", name: "品红", note: "年轻 · 学生向",
+    v: { "--accent":"#ff4d8d","--accent-soft":"rgba(255,77,141,.15)","--warn":"#ffb454","--danger":"#ff5252",
+         "--bg":"#0c0710","--bg-soft":"#150c1c","--card":"#1a1023","--card-hi":"#22162d",
+         "--border":"#2e1d3b","--border-hi":"#452b57","--text":"#f4e9f3","--text-dim":"#a58bb0","--text-faint":"#6d5678" } },
+
+  { key: "violet", name: "靛紫", note: "克制 · 偏高级",
+    v: { "--accent":"#9d7cff","--accent-soft":"rgba(157,124,255,.15)","--warn":"#ffb454","--danger":"#ff6b6b",
+         "--bg":"#080814","--bg-soft":"#100f1f","--card":"#151327","--card-hi":"#1c1932",
+         "--border":"#252242","--border-hi":"#3a3563","--text":"#e9e7f7","--text-dim":"#8a86ab","--text-faint":"#575374" } },
+
+  { key: "paper", name: "纸白", note: "亮色 · 阅读感",
+    v: { "--accent":"#0f9d6b","--accent-soft":"rgba(15,157,107,.12)","--warn":"#c77700","--danger":"#d63a3a",
+         "--bg":"#f7f8f6","--bg-soft":"#eef1ec","--card":"#ffffff","--card-hi":"#f6f8f5",
+         "--border":"#e0e5dd","--border-hi":"#c3ccbe","--text":"#14201a","--text-dim":"#5d6b61","--text-faint":"#93a097" } },
+];
+
+let curPal = "radar";
+function initPalette() {
+  const btn = document.getElementById("palBtn");
+  const menu = document.getElementById("palMenu");
+  const ripple = document.getElementById("ripple");
+  const root = document.documentElement;
+
+  menu.innerHTML = `<div class="pal-title">配色风格</div>` + PALETTES.map(p => `
+    <button class="pal-item ${p.key === curPal ? "on" : ""}" data-pal="${p.key}">
+      <span class="pal-swatch" style="background:${p.v["--card"]}"><i style="background:${p.v["--accent"]}"></i></span>
+      <span><span style="display:block">${p.name}</span><span style="font-size:11px;color:var(--text-faint)">${p.note}</span></span>
+      <span class="tick">${icon("check", 14)}</span>
+    </button>`).join("");
+
+  btn.onclick = e => { e.stopPropagation(); menu.classList.toggle("open"); };
+  document.addEventListener("click", () => menu.classList.remove("open"));
+  menu.onclick = e => e.stopPropagation();
+
+  menu.querySelectorAll(".pal-item").forEach(item => {
+    item.onclick = e => {
+      const p = PALETTES.find(x => x.key === item.dataset.pal);
+      if (!p || p.key === curPal) return;
+      curPal = p.key;
+      menu.querySelectorAll(".pal-item").forEach(i => i.classList.toggle("on", i === item));
+
+      const r = btn.getBoundingClientRect();
+      const x = e.clientX || r.left + r.width / 2, y = e.clientY || r.top + r.height / 2;
+      const rad = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+
+      // 新底色从点击点圆形扩散铺满，同时真实 CSS 变量补间到位
+      ripple.style.background = p.v["--bg"];
+      gsap.fromTo(ripple, { clipPath: `circle(0px at ${x}px ${y}px)` }, {
+        clipPath: `circle(${rad}px at ${x}px ${y}px)`, duration: .7, ease: "power2.inOut",
+        onComplete: () => gsap.set(ripple, { clipPath: `circle(0px at ${x}px ${y}px)` }),
+      });
+      gsap.to(root, { duration: .7, ease: "power2.inOut", ...p.v });
+      root.dataset.theme = p.key === "paper" ? "light" : "dark";
+      gsap.delayedCall(.75, () => menu.classList.remove("open"));
+    };
+  });
+}
+
+/* ================= Toast ================= */
+function toast(title, msg) {
+  const box = document.getElementById("toasts");
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.innerHTML = `<div class="toast-icon">${icon("check", 14)}</div><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+  box.prepend(el);
+  gsap.from(el, { x: 330, opacity: 0, duration: .5, ease: "power3.out" });
+  gsap.delayedCall(4, () => gsap.to(el, {
+    x: 330, opacity: 0, duration: .4, ease: "power3.in",
+    onComplete: () => gsap.to(el, { height: 0, marginBottom: -10, duration: .25, onComplete: () => el.remove() }),
+  }));
+}
+
+/* ================= 启动 ================= */
+function boot() {
+  // 给静态元素注入 Lucide 图标
+  document.querySelectorAll("[data-ic]").forEach(el => {
+    el.insertAdjacentHTML("afterbegin", icon(el.dataset.ic, +el.dataset.icSize || 14) + " ");
+  });
+
+  // 移动端与 reduced-motion 都不开 ScrollSmoother
+  if (!REDUCED && window.innerWidth > 768) {
+    ScrollSmoother.create({
+      wrapper: "#smooth-wrapper", content: "#smooth-content",
+      smooth: 1.2, effects: true, normalizeScroll: true,
+    });
+  }
+  buildFilters();
+  initStats();
+  render();
+  initFilterBar();
+  initInfinite();
+  initHero();
+  initCounters();
+  initMarquee();
+  initBlessing();
+  initPalette();
+  document.getElementById("subBtn").onclick = e => {
+    e.preventDefault();
+    const host = document.getElementById("timeline");
+    const sm = ScrollSmoother.get();
+    sm ? sm.scrollTo(host, true, "top 90px") : host.scrollIntoView({ behavior: "smooth" });
+    toast(`今天有 ${D.stats.today || 0} 条动静`, "时间线按天倒序，最上面就是今天。");
+  };
+  // 抽屉：点遮罩或按 ESC 关闭
+  document.getElementById("scrim").onclick = closeDrawer;
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && document.body.classList.contains("drawer-open")) closeDrawer();
+  });
+  // 宽度变了坐标就得重算（曲线用的是真实像素），防抖重画
+  let rt;
+  window.addEventListener("resize", () => {
+    clearTimeout(rt);
+    rt = setTimeout(drawTimeline, 180);
+  });
+}
+boot();
+</script>
+</body>
+</html>
