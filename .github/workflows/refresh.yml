@@ -1,0 +1,50 @@
+name: 抓取增量
+
+# 每天两次巡检牛客校招日程，把增量事件提交回仓库。
+# push 到 main 会触发 deploy.yml，所以这里不需要单独调部署。
+on:
+  schedule:
+    # UTC 00:00 / 12:00 = 北京时间 08:00 / 20:00
+    - cron: '0 0,12 * * *'
+  workflow_dispatch: # 也允许手动触发一次
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 抓取并编译数据
+        run: |
+          node scripts/crawl.mjs
+          node scripts/build.mjs
+
+      - name: 发当天日报
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          DIGEST_TO: ${{ secrets.DIGEST_TO }}
+        run: node scripts/digest.mjs
+
+      - name: 提交数据变更
+        run: |
+          git config user.name  "Leo"
+          git config user.email "1656839861un@gmail.com"
+          git add data site/data.js site/index.html
+          # 没有变化时 commit 会返回非 0，这里视为正常结束
+          if git diff --cached --quiet; then
+            echo "数据无变化，跳过提交"
+          else
+            git commit -m "chore(data): $(date -u -d '+8 hours' '+%Y-%m-%d %H:%M') 巡检增量"
+            git push
+          fi
