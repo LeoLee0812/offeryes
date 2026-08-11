@@ -1,16 +1,16 @@
 {
-  "crawledAt": 1786412229458,
+  "crawledAt": 1786453192546,
   "today": "2026-08-11",
   "source": "nowcoder-school-schedule",
   "rawCount": 10000,
-  "itemCount": 330,
+  "itemCount": 343,
   "failedPages": 0,
   "byState": {
-    "open": 326,
+    "open": 337,
     "upcoming": 4,
-    "closed": 0,
+    "closed": 2,
     "unknown": 0
   },
-  "freshEvents": 1,
-  "todayEvents": 1
+  "freshEvents": 13,
+  "todayEvents": 14
 }
