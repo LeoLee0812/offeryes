@@ -1,5 +1,5 @@
 {
-  "crawledAt": 1789787531041,
+  "crawledAt": 1789831377986,
   "today": "2026-09-19",
   "source": "nowcoder-school-schedule",
   "rawCount": 10000,
@@ -11,6 +11,6 @@
     "closed": 0,
     "unknown": 0
   },
-  "freshEvents": 2,
+  "freshEvents": 0,
   "todayEvents": 2
 }
